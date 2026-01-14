@@ -1,8 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-
-// In-memory storage for demo purposes
-// In a real app, you'd use a database
-let tasks: Array<{ id: string; title: string; description: string; createdAt: Date }> = [];
+import { prisma } from '@/lib/prisma';
 
 export async function POST(request: NextRequest) {
     try {
@@ -15,17 +12,16 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        const newTask = {
-            id: Date.now().toString(),
-            title,
-            description,
-            createdAt: new Date(),
-        };
-
-        tasks.push(newTask);
+        const newTask = await prisma.task.create({
+            data: {
+                title,
+                description,
+            },
+        });
 
         return NextResponse.json(newTask, { status: 201 });
     } catch (error) {
+        console.error('Failed to create task:', error);
         return NextResponse.json(
             { error: 'Failed to create task' },
             { status: 500 }
@@ -34,5 +30,18 @@ export async function POST(request: NextRequest) {
 }
 
 export async function GET() {
-    return NextResponse.json(tasks);
+    try {
+        const tasks = await prisma.task.findMany({
+            orderBy: {
+                createdAt: 'desc',
+            },
+        });
+        return NextResponse.json(tasks);
+    } catch (error) {
+        console.error('Failed to fetch tasks:', error);
+        return NextResponse.json(
+            { error: 'Failed to fetch tasks' },
+            { status: 500 }
+        );
+    }
 }
