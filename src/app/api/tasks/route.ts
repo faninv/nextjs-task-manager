@@ -3,7 +3,7 @@ import { prisma } from '@/lib/prisma';
 
 export async function POST(request: NextRequest) {
     try {
-        const { title, description } = await request.json();
+        const { title, description, status } = await request.json();
 
         if (!title || !description) {
             return NextResponse.json(
@@ -12,10 +12,14 @@ export async function POST(request: NextRequest) {
             );
         }
 
+        const validStatuses = ['TODO', 'IN_PROGRESS', 'REVIEW', 'COMPLETED'];
+        const taskStatus = status && validStatuses.includes(status) ? status : 'TODO';
+
         const newTask = await prisma.task.create({
             data: {
                 title,
                 description,
+                status: taskStatus,
             },
         });
 
@@ -32,9 +36,9 @@ export async function POST(request: NextRequest) {
 export async function GET() {
     try {
         const tasks = await prisma.task.findMany({
-            orderBy: {
-                createdAt: 'desc',
-            },
+            orderBy: [
+                { createdAt: 'desc' },
+            ],
         });
         return NextResponse.json(tasks);
     } catch (error) {

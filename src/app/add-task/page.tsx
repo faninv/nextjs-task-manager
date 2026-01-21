@@ -2,16 +2,19 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { TaskStatus, TASK_STATUSES, STATUS_CONFIG } from '@/types/task';
 
 export default function CreateTask() {
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
+    const [status, setStatus] = useState<TaskStatus>('TODO');
     const [isSubmitting, setIsSubmitting] = useState(false);
     const router = useRouter();
 
   const resetForm = () => {
     setTitle('');
     setDescription('');
+    setStatus('TODO');
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -24,12 +27,11 @@ export default function CreateTask() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ title, description }),
+        body: JSON.stringify({ title, description, status }),
       });
 
       if (response.ok) {
         resetForm();
-        // Redirect to home page or show success message
         router.push('/');
       } else {
         const error = await response.json();
@@ -43,11 +45,15 @@ export default function CreateTask() {
   };
 
     return (
-        <div className="min-h-screen p-8">
+        <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-6 lg:p-8">
             <div className="max-w-2xl mx-auto">
-                <h1 className="text-3xl font-bold mb-8">Add New Task</h1>
+                <div className="mb-8">
+                    <h1 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-2">Create New Task</h1>
+                    <p className="text-gray-600">Add a new task to your board</p>
+                </div>
 
-                <form onSubmit={handleSubmit} className="space-y-6">
+                <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 lg:p-8">
+                    <form onSubmit={handleSubmit} className="space-y-6">
                     <div>
                         <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-2">
                             Title
@@ -57,7 +63,7 @@ export default function CreateTask() {
                             id="title"
                             value={title}
                             onChange={(e) => setTitle(e.target.value)}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            className="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
                             placeholder="Enter task title"
                             required
                         />
@@ -72,30 +78,49 @@ export default function CreateTask() {
                             value={description}
                             onChange={(e) => setDescription(e.target.value)}
                             rows={4}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            className="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors resize-none"
                             placeholder="Enter task description"
                             required
                         />
                     </div>
 
-                    <div className="flex gap-4">
+                    <div>
+                        <label htmlFor="status" className="block text-sm font-medium text-gray-700 mb-2">
+                            Status
+                        </label>
+                        <select
+                            id="status"
+                            value={status}
+                            onChange={(e) => setStatus(e.target.value as TaskStatus)}
+                            className="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                        >
+                            {TASK_STATUSES.map((s) => (
+                                <option key={s} value={s}>
+                                    {STATUS_CONFIG[s].label}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+
+                    <div className="flex gap-4 pt-4">
                         <button
                             type="submit"
                             disabled={isSubmitting}
-                            className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 hover:shadow-lg font-medium"
                         >
-                            {isSubmitting ? 'Adding...' : 'Add Task'}
+                            {isSubmitting ? 'Creating...' : 'Create Task'}
                         </button>
 
                         <button
                             type="button"
                             onClick={() => router.push('/')}
-                            className="px-6 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
+                            className="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-colors font-medium"
                         >
                             Cancel
                         </button>
                     </div>
-                </form>
+                    </form>
+                </div>
             </div>
         </div>
     );
